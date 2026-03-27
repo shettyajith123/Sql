@@ -29,14 +29,18 @@ Sales Growth (%)=Q3Sales(Q4Sales−Q3Sales)​×100
 
 -- My solution
 
-with cte as(
-select fc.*,mct.territory_id,DATEPART(QUARTER, order_Date) AS Quarter ,
-round(1.0*100*(lead(order_value,1,order_value) over(partition by fc.cust_id order by order_date)-order_value)/order_value,1) as increase_percent
+with quarterly_sales as (
+select mc.territory_id,DATEPART(QUARTER, order_Date) AS Quarter, DATEPART(Year, order_Date) AS Year,sum(order_value) as Total_quarterly_sales
 from fct_customer_sale fc
-join map_customer_territories mct
-on fc.cust_id=mct.cust_id
-where DATEPART(QUARTER, order_Date) in (3,4)
-)
-Select territory_id,max(increase_percent) as [Sales Growth]
-from cte
-group by territory_id
+join map_customer_territories mc
+on fc.cust_id = mc.cust_id
+where DATEPART(QUARTER, order_Date) in (3,4) and DATEPART(Year, order_Date)  = 2021
+group by mc.territory_id,DATEPART(QUARTER, order_Date), DATEPART(Year, order_Date) )
+Select 
+q3.territory_id,round((1.0*100*(q4.Total_quarterly_sales-q3.Total_quarterly_sales)/q3.Total_quarterly_sales),2) as Percent_increase
+from quarterly_sales q3
+join quarterly_sales q4
+on q3.territory_id = q4.territory_id
+and q3.year = q4.year
+and q3.Quarter = 3 and  q4.Quarter = 4
+where q3.Total_quarterly_sales > 0
