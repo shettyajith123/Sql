@@ -44,3 +44,5 @@ on q3.territory_id = q4.territory_id
 and q3.year = q4.year
 and q3.Quarter = 3 and  q4.Quarter = 4
 where q3.Total_quarterly_sales > 0
+
+
